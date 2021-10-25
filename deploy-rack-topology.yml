@@ -1,0 +1,47 @@
+---
+
+- hosts: nodes
+  gather_facts: no
+  tasks:
+    - name: "make rack topology directory"
+      file:
+        path: /usr/local/etc/topology
+        owner: hdfs
+        group: hadoop
+        mode: 0755
+        state: directory
+      tags:
+        - make-topology-directory
+
+    - name: "deploy new hadoop rack topology script"
+      copy:
+        src: ./topology_json.sh
+        dest: /usr/local/bin/topology_json.sh
+        owner: hdfs
+        group: hadoop
+        mode: 0755
+      tags:
+        - deploy-new-topology-script
+
+    - name: "deploy get topology script"
+      copy:
+        src: ./get-rack-topology.sh
+        dest: /usr/local/bin/get-rack-topology.sh
+        owner: hdfs
+        group: hadoop
+        mode: 0754
+      tags:
+        - deploy-new-topology-script
+
+    - name: "create /etc/cron.d entry to pull rack topology mapping file"
+      cron:
+        name: get_rack_topology
+        cron_file: get_rack_topology
+        job: "/usr/local/bin/get-rack-topology.sh > /var/log/hadoop-hdfs/get-rack-topology.out.log 2>&1"
+        user: hdfs
+        special_time: daily
+        state: present
+      tags:
+        - create-topology-crontab-entry
+
+

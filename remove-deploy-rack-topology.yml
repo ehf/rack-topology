@@ -1,0 +1,21 @@
+---
+
+- hosts: nodes
+  gather_facts: no
+  tasks:
+    - name: "delete /etc/cron.d entry to pull rack topology mapping file"
+      cron:
+        name: get_rack_topology
+        cron_file: get_rack_topology
+        state: absent
+      tags:
+        - remove-create-topology-crontab-entry
+
+    - name: "remove new rack topology scripts"
+      file: path={{ item }} state=absent
+      with_items:
+        - /usr/local/bin/get-rack-topology.sh
+        - /usr/local/bin/topology_json.sh
+        - /etc/cron.d/get_rack_topology
+      tags:
+        - remove-topology-scripts
